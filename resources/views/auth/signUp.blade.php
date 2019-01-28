@@ -2,7 +2,7 @@
 @extends('layout.master')
 <!--傳送資料到母模板,並指定變數title-->
 @section('title',$title)
-<!---傳送資料到母模板，並指定變數title-->
+<!---傳送資料到母模板，並指定變數content-->
 @section('content')
     <div class="container">
         <h1>{{$title}}</h1>

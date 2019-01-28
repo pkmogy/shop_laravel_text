@@ -21,10 +21,15 @@ Route::get('/','HomeController@indexPage');
 //使用者
 Route::group(['prefix' => 'user'],function (){
     Route::group(['prefix' => 'auth'],function (){
+        //顯示使用者註冊頁面
         Route::get('/sign-up', 'UserAuthController@signUpPage');
+        //處理使用者註冊
         Route::post('/sign-up', 'UserAuthController@signUpProcess');
+        //顯示使用者登入頁面
         Route::get('/sign-in', 'UserAuthController@signInPage');
+        //使用者登入處理
         Route::post('/sign-in', 'UserAuthController@signInProcess');
+        //使用者登入
         Route::get('/sign-out', 'UserAuthController@signOut');
     });
 });
