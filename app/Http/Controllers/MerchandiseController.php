@@ -23,4 +23,16 @@ class MerchandiseController extends Controller{
         // 重新導向至商品編輯頁
         return redirect('/merchandise/' . $Merchandise->id . '/edit');
     }
+    public function merchandiseItemEditPage($merchandise_id){
+        $Merchandise=Merchandise::findOrFail($merchandise_id);
+        if (!is_null($Merchandise->photo)){
+            $Merchandise->photo = url($Merchandise->photo);
+        }
+
+        $binding=[
+            'title'=>'編輯商品',
+            'Merchandise'=>$Merchandise,
+        ];
+        return view('merchandise.editMerchandise',$binding);
+    }
 }
