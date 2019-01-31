@@ -59,4 +59,4 @@ Route::group(['prefix' => 'merchandise'],function (){
 
 
 // 交易
-//Route::get('/transaction', 'TransactionController@transactionListPage');
+Route::get('/transaction', 'TransactionController@transactionListPage');

@@ -3,8 +3,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\shop\Entity\Merchandise;
+use App\shop\Entity\Transaction;
+use App\shop\Entity\User;
+use DB;
 use Image;
 use Validator;
+use Exception;
 
 
 class MerchandiseController extends Controller{
@@ -132,5 +136,114 @@ class MerchandiseController extends Controller{
         ];
 
         return view('merchandise.manageMerchandise',$binding);
+    }
+    public function merchandiseListPage(){
+        $row_per_page=10;
+        $MerchandisePaginate=Merchandise::OrderBy('created_at','desc')
+            ->where('status','S')
+            ->paginate($row_per_page);
+        foreach ($MerchandisePaginate as &$Merchandise){
+            if (!is_null($Merchandise->photo)){
+                // 設定商品照片網址
+                $Merchandise->photo=url($Merchandise->photo);
+            }
+        }
+        $binding=[
+            'title'=>'商品列表',
+            'MerchandisePaginate'=>$MerchandisePaginate,
+        ];
+
+        return view('merchandise.listMerchandise',$binding);
+    }
+    public function merchandiseItemPage($merchandise_id){
+        $Merchandise=Merchandise::findOrFail($merchandise_id);
+        if (!is_null($Merchandise->photo)){
+            // 設定商品照片網址
+            $Merchandise->photo=url($Merchandise->photo);
+        }
+        $binding=[
+            'title'=>'商品列表',
+            'Merchandise'=>$Merchandise,
+        ];
+
+        return view('merchandise.showMerchandise',$binding);
+    }
+    public function merchandiseItemBuyProcess($merchandise_id){
+        //接收輸入資訊
+        $input=request()->all();
+        //驗證規則
+        $rules=[
+          //商品購買數量
+            'buy_count'  =>[
+              'required',
+              'integer',
+              'min:1',
+            ],
+        ];
+        //驗證規則
+        $validator =Validator::make($input,$rules);
+        if($validator->fails()){
+            //資料驗證錯誤
+            return redirect('/merchandise/'.$merchandise_id)
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try{
+            //取得會員資料
+            $user_id=session()->get('user_id');
+            $User=User::findOrFail($user_id);
+
+            //交易開始
+            DB::beginTransaction();
+            //取得商品資料
+            $Merchandise=Merchandise::findOrFail($merchandise_id);
+            $buy_count=$input['buy_count'];
+            $remain_count_after_buy=$Merchandise->remain_count - $buy_count;
+            if($remain_count_after_buy <0){
+                throw new Exception('商品數量不足，無法購買');
+            }
+            //紀錄購買
+            $Merchandise->remain_count =$remain_count_after_buy;
+            $Merchandise->save();
+
+            //總金額:總購買數量*商品價格
+            $total_price=$buy_count*$Merchandise->price;
+
+            $transaction_data=[
+                'user_id' => $User->id,
+                'merchandise_id' => $Merchandise->id,
+                'price' => $Merchandise->price,
+                'buy_count' => $buy_count,
+                'total_price' =>$total_price,
+            ];
+            //建立交易資料
+            Transaction::create($transaction_data);
+            //交易結束
+            DB::commit();
+
+            //回傳購物成功訊息
+            $message=[
+                'mag' =>[
+                    '購買成功',
+                ],
+            ];
+            return redirect()->to('/merchandise/'.$merchandise_id)
+                ->withErrors($message);
+        }catch (Exception $exception){
+            //恢復原先交易狀態
+            DB::rollBack();
+
+            //回復錯誤訊息
+            $error_message=[
+                'mag' =>[
+                    $exception->getMessage(),
+                ],
+            ];
+            return redirect()
+                ->back()
+                ->withErrors($error_message)
+                ->withInput();
+        }
     }
 }
