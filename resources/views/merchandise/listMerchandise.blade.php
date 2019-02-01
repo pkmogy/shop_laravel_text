@@ -5,7 +5,7 @@
 @section("content")
     <div class="container">
         <h1>{{$title}}</h1>
-
+        <div><a href="/transaction">交易紀錄</a></div>
         @include('component.validationErrorMessage')
 
         <table>

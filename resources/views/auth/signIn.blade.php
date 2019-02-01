@@ -19,5 +19,6 @@
             </label>
             <button type="submit">登入</button>
         </form>
+        <a href="/user/auth/facebook-sign-in"><button type="button">FB登入</button></a>
     </div>
 @endsection

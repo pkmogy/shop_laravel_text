@@ -12,6 +12,11 @@ use Exception;
 
 
 class MerchandiseController extends Controller{
+    //回首頁
+    public function indexPage(){
+        return redirect('/merchandise');
+    }
+
     public function merchandiseCreateProcess(){
         // 建立商品基本資訊
         $merchandise_data = [

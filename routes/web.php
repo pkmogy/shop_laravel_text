@@ -16,7 +16,7 @@
 });*/
 
 //首頁
-//Route::get('/','HomeController@indexPage');
+Route::get('/','MerchandiseController@indexPage');
 
 //使用者
 Route::group(['prefix' => 'user'],function (){

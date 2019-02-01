@@ -8,6 +8,7 @@ use Mail;
 use Hash;
 use Validator;
 use Socialite;
+use App\Jobs\SendSignUpMailJob;
 use App\shop\Entity\User;
 
 class UserAuthController extends Controller{
@@ -69,14 +70,16 @@ class UserAuthController extends Controller{
         $User=User::create($input);
 
         $mail_binding=[
-            'nickname' => $input['nickname']
+            'nickname' => $input['nickname'],
+            'email' => $input['email'],
         ];
 
-        Mail::send('email.signUpEmailNotification',$mail_binding,function ($mail) use ($input){
+        SendSignUpMailJob::dispatch($mail_binding);
+        /*Mail::send('email.signUpEmailNotification',$mail_binding,function ($mail) use ($input){
            $mail->to($input['email']);
            $mail->from('powerfisg0813@gmail.com');
            $mail->subject('恭喜註冊Shop Laravel 成功');
-        });
+        });*/
         return redirect('/user/auth/sign-in');
     }
 
@@ -201,13 +204,12 @@ class UserAuthController extends Controller{
             $User = User::create($input);
 
             // 寄送註冊通知信
-            /*$mail_binding = [
-                'nickname' => $input['nickname'],
-                'email' => $input['email'],
+            $mail_binding=[
+            'nickname' => $input['nickname'],
+            'email' => $input['email'],
             ];
 
-            SendSignUpMailJob::dispatch($mail_binding)
-                ->onQueue('high');*/
+            SendSignUpMailJob::dispatch($mail_binding);
         }
         session()->put('user_id',$User->id);
         return redirect()->intended('/merchandise');
